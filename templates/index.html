@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>F1 Database</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">F1 Database</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item"><a class="nav-link" href="/add_driver">Add Driver</a></li>
+                <li class="nav-item"><a class="nav-link" href="/add_team">Add Team</a></li>
+                <li class="nav-item"><a class="nav-link" href="/query_drivers">Query Drivers</a></li>
+                <li class="nav-item"><a class="nav-link" href="/query_teams">Query Teams</a></li>
+                <li class="nav-item"><a class="nav-link" href="/compare_drivers">Compare Drivers</a></li>
+                <li class="nav-item"><a class="nav-link" href="/compare_teams">Compare Teams</a></li>
+            </ul>
+            <a href="/login" class="btn btn-primary" id="login-box">Login/Sign Up</a>
+            <button id="sign-out" class="btn btn-secondary" style="display:none;">Logout</button>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        
+        <h1>Welcome to the F1 Database</h1>
+        <p>Use the navigation bar to manage drivers and teams.</p>
+    </div>
+    <script type="module" src="/static/js/firebase-login.js"></script>
+</body>
+</html>

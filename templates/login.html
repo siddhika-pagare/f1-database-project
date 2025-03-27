@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login / Sign Up</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Login or Sign Up</h1>
+        <div id="login-box">
+            <form id="auth-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" class="form-control" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" id="password" required>
+                </div>
+                <button type="button" class="btn btn-primary" id="login">Login</button>
+                <button type="button" class="btn btn-success" id="sign-up">Sign Up</button>
+            </form>
+        </div>
+        <button id="sign-out" class="btn btn-secondary mt-2" style="display:none;">Sign Out</button>
+    </div>
+    <script type="module" src="/static/js/firebase-login.js"></script>
+</body>
+</html>

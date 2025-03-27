@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Driver Detail</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">F1 Database</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item"><a class="nav-link" href="/add_driver">Add Driver</a></li>
+                <li class="nav-item"><a class="nav-link" href="/add_team">Add Team</a></li>
+                <li class="nav-item"><a class="nav-link" href="/query_drivers">Query Drivers</a></li>
+                <li class="nav-item"><a class="nav-link" href="/query_teams">Query Teams</a></li>
+                <li class="nav-item"><a class="nav-link" href="/compare_drivers">Compare Drivers</a></li>
+                <li class="nav-item"><a class="nav-link" href="/compare_teams">Compare Teams</a></li>
+            </ul>
+            <a href="/login" class="btn btn-primary mr-2" id="login-box">Login/Sign Up</a>
+            <button id="sign-out" class="btn btn-secondary" style="display:none;">Logout</button>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h1>Driver Detail</h1>
+        <div id="driver-info"></div>
+        <button id="edit-driver" class="btn btn-warning mt-2">Edit</button>
+        <button id="delete-driver" class="btn btn-danger mt-2">Delete</button>
+    </div>
+    <script type="module" src="/static/js/firebase-login.js"></script>
+    <script>
+        function getToken() {
+            const cookie = document.cookie.split(';').find(c => c.trim().startsWith('token='));
+            return cookie ? cookie.split('=')[1] : '';
+        }
+
+        // Fetch driver details
+        const urlParams = new URLSearchParams(window.location.search);
+        const driverName = urlParams.get('name');
+        fetch(`/drivers/${encodeURIComponent(driverName)}`)
+            .then(response => {
+                if (!response.ok) throw new Error('Driver not found');
+                return response.json();
+            })
+            .then(driver => {
+                const infoDiv = document.getElementById('driver-info');
+                infoDiv.innerHTML = `
+                    <p><strong>Name:</strong> ${driver.name}</p>
+                    <p><strong>Age:</strong> ${driver.age}</p>
+                    <p><strong>Total Pole Positions:</strong> ${driver.total_pole_positions}</p>
+                    <p><strong>Total Race Wins:</strong> ${driver.total_race_wins}</p>
+                    <p><strong>Total Points Scored:</strong> ${driver.total_points_scored}</p>
+                    <p><strong>Total World Titles:</strong> ${driver.total_world_titles}</p>
+                    <p><strong>Total Fastest Laps:</strong> ${driver.total_fastest_laps}</p>
+                    <p><strong>Team:</strong> ${driver.team}</p>
+                `;
+            })
+            .catch(error => {
+                document.getElementById('driver-info').innerHTML = `<p class="text-danger">${error.message}</p>`;
+            });
+
+        // Edit button
+        document.getElementById('edit-driver').addEventListener('click', () => {
+            const token = getToken();
+            if (!token) {
+                alert('Please log in first');
+                return;
+            }
+            window.location.href = `/add_driver?name=${encodeURIComponent(driverName)}`; // Redirect to edit form
+        });
+
+        // Delete button
+        document.getElementById('delete-driver').addEventListener('click', async () => {
+            const token = getToken();
+            if (!token) {
+                alert('Please log in first');
+                return;
+            }
+            if (!confirm('Are you sure you want to delete this driver?')) return;
+
+            try {
+                const response = await fetch(`/drivers/${encodeURIComponent(driverName)}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail);
+                }
+                alert('Driver deleted successfully');
+                window.location.href = '/query_drivers';
+            } catch (error) {
+                alert('Failed to delete driver: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
