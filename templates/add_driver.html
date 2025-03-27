@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add/Edit Driver</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">F1 Database</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item"><a class="nav-link" href="/add_driver">Add Driver</a></li>
+                <li class="nav-item"><a class="nav-link" href="/add_team">Add Team</a></li>
+                <li class="nav-item"><a class="nav-link" href="/query_drivers">Query Drivers</a></li>
+                <li class="nav-item"><a class="nav-link" href="/query_teams">Query Teams</a></li>
+                <li class="nav-item"><a class="nav-link" href="/compare_drivers">Compare Drivers</a></li>
+                <li class="nav-item"><a class="nav-link" href="/compare_teams">Compare Teams</a></li>
+            </ul>
+            <a href="/login" class="btn btn-primary mr-2" id="login-box">Login/Sign Up</a>
+            <button id="sign-out" class="btn btn-secondary" style="display:none;">Logout</button>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h1 id="form-title">Add Driver</h1>
+        <form id="add-driver-form">
+            <div class="form-group">
+                <label>Name</label><input type="text" class="form-control" name="name" required>
+            </div>
+            <div class="form-group">
+                <label>Age</label><input type="number" class="form-control" name="age" required>
+            </div>
+            <div class="form-group">
+                <label>Total Pole Positions</label><input type="number" class="form-control" name="total_pole_positions" required>
+            </div>
+            <div class="form-group">
+                <label>Total Race Wins</label><input type="number" class="form-control" name="total_race_wins" required>
+            </div>
+            <div class="form-group">
+                <label>Total Points Scored</label><input type="number" class="form-control" name="total_points_scored" required>
+            </div>
+            <div class="form-group">
+                <label>Total World Titles</label><input type="number" class="form-control" name="total_world_titles" required>
+            </div>
+            <div class="form-group">
+                <label>Total Fastest Laps</label><input type="number" class="form-control" name="total_fastest_laps" required>
+            </div>
+            <div class="form-group">
+                <label>Team</label><input type="text" class="form-control" name="team" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+        <div id="message" class="mt-2"></div>
+    </div>
+    <script type="module" src="/static/js/firebase-login.js"></script>
+    <script>
+        function getToken() {
+            const cookie = document.cookie.split(';').find(c => c.trim().startsWith('token='));
+            return cookie ? cookie.split('=')[1] : '';
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const driverName = urlParams.get('name');
+        if (driverName) {
+            document.getElementById('form-title').textContent = 'Edit Driver';
+            fetch(`/drivers/${encodeURIComponent(driverName)}`)
+                .then(response => response.json())
+                .then(driver => {
+                    document.querySelector('[name="name"]').value = driver.name;
+                    document.querySelector('[name="age"]').value = driver.age;
+                    document.querySelector('[name="total_pole_positions"]').value = driver.total_pole_positions;
+                    document.querySelector('[name="total_race_wins"]').value = driver.total_race_wins;
+                    document.querySelector('[name="total_points_scored"]').value = driver.total_points_scored;
+                    document.querySelector('[name="total_world_titles"]').value = driver.total_world_titles;
+                    document.querySelector('[name="total_fastest_laps"]').value = driver.total_fastest_laps;
+                    document.querySelector('[name="team"]').value = driver.team;
+                });
+        }
+
+        document.getElementById("add-driver-form").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const token = getToken();
+            const messageDiv = document.getElementById("message");
+
+            if (!token) {
+                messageDiv.textContent = "Please log in first";
+                messageDiv.classList.add("text-danger");
+                return;
+            }
+
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+            const method = driverName ? 'PUT' : 'POST';
+            const url = driverName ? `/drivers/${encodeURIComponent(driverName)}` : '/drivers/';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        "Authorization": "Bearer " + token,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail);
+                }
+
+                const result = await response.json();
+                messageDiv.textContent = result.message;
+                messageDiv.classList.remove("text-danger");
+                messageDiv.classList.add("text-success");
+                if (method === 'PUT') window.location.href = `/driver_detail?name=${encodeURIComponent(data.name)}`;
+            } catch (error) {
+                messageDiv.textContent = error.message;
+                messageDiv.classList.remove("text-success");
+                messageDiv.classList.add("text-danger");
+            }
+        });
+    </script>
+</body>
+</html>
