@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add/Edit Team</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">F1 Database</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item"><a class="nav-link" href="/add_driver">Add Driver</a></li>
+                <li class="nav-item"><a class="nav-link" href="/add_team">Add Team</a></li>
+                <li class="nav-item"><a class="nav-link" href="/query_drivers">Query Drivers</a></li>
+                <li class="nav-item"><a class="nav-link" href="/query_teams">Query Teams</a></li>
+                <li class="nav-item"><a class="nav-link" href="/compare_drivers">Compare Drivers</a></li>
+                <li class="nav-item"><a class="nav-link" href="/compare_teams">Compare Teams</a></li>
+            </ul>
+            <a href="/login" class="btn btn-primary mr-2" id="login-box">Login/Sign Up</a>
+            <button id="sign-out" class="btn btn-secondary" style="display:none;">Logout</button>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h1 id="form-title">Add Team</h1>
+        <form id="add-team-form">
+            <div class="form-group">
+                <label>Name</label><input type="text" class="form-control" name="name" required>
+            </div>
+            <div class="form-group">
+                <label>Year Founded</label><input type="number" class="form-control" name="year_founded" required>
+            </div>
+            <div class="form-group">
+                <label>Total Pole Positions</label><input type="number" class="form-control" name="total_pole_positions" required>
+            </div>
+            <div class="form-group">
+                <label>Total Race Wins</label><input type="number" class="form-control" name="total_race_wins" required>
+            </div>
+            <div class="form-group">
+                <label>Total Constructor Titles</label><input type="number" class="form-control" name="total_constructor_titles" required>
+            </div>
+            <div class="form-group">
+                <label>Finishing Position Last Season</label><input type="number" class="form-control" name="finishing_position_last_season" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+        <div id="message" class="mt-2"></div>
+    </div>
+    <script type="module" src="/static/js/firebase-login.js"></script>
+    <script>
+        function getToken() {
+            const cookie = document.cookie.split(';').find(c => c.trim().startsWith('token='));
+            return cookie ? cookie.split('=')[1] : '';
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const teamName = urlParams.get('name');
+        if (teamName) {
+            document.getElementById('form-title').textContent = 'Edit Team';
+            fetch(`/teams/${encodeURIComponent(teamName)}`)
+                .then(response => response.json())
+                .then(team => {
+                    document.querySelector('[name="name"]').value = team.name;
+                    document.querySelector('[name="year_founded"]').value = team.year_founded;
+                    document.querySelector('[name="total_pole_positions"]').value = team.total_pole_positions;
+                    document.querySelector('[name="total_race_wins"]').value = team.total_race_wins;
+                    document.querySelector('[name="total_constructor_titles"]').value = team.total_constructor_titles;
+                    document.querySelector('[name="finishing_position_last_season"]').value = team.finishing_position_last_season;
+                });
+        }
+
+        document.getElementById("add-team-form").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const token = getToken();
+            const messageDiv = document.getElementById("message");
+
+            if (!token) {
+                messageDiv.textContent = "Please log in first";
+                messageDiv.classList.add("text-danger");
+                return;
+            }
+
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+            const method = teamName ? 'PUT' : 'POST';
+            const url = teamName ? `/teams/${encodeURIComponent(teamName)}` : '/teams/';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        "Authorization": "Bearer " + token,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail);
+                }
+
+                const result = await response.json();
+                messageDiv.textContent = result.message;
+                messageDiv.classList.remove("text-danger");
+                messageDiv.classList.add("text-success");
+                if (method === 'PUT') window.location.href = `/team_detail?name=${encodeURIComponent(data.name)}`;
+            } catch (error) {
+                messageDiv.textContent = error.message;
+                messageDiv.classList.remove("text-success");
+                messageDiv.classList.add("text-danger");
+            }
+        });
+    </script>
+</body>
+</html>

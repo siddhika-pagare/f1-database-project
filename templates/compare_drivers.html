@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Compare Drivers</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">F1 Database</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item"><a class="nav-link" href="/add_driver">Add Driver</a></li>
+                <li class="nav-item"><a class="nav-link" href="/add_team">Add Team</a></li>
+                <li class="nav-item"><a class="nav-link" href="/query_drivers">Query Drivers</a></li>
+                <li class="nav-item"><a class="nav-link" href="/query_teams">Query Teams</a></li>
+                <li class="nav-item"><a class="nav-link" href="/compare_drivers">Compare Drivers</a></li>
+                <li class="nav-item"><a class="nav-link" href="/compare_teams">Compare Teams</a></li>
+            </ul>
+            <a href="/login" class="btn btn-primary mr-2" id="login-box">Login/Sign Up</a>
+            <button id="sign-out" class="btn btn-secondary" style="display:none;">Logout</button>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h1>Compare Drivers</h1>
+        <form id="compare-drivers-form">
+            <div class="form-group">
+                <label>Driver 1</label><input type="text" class="form-control" name="driver1" required>
+            </div>
+            <div class="form-group">
+                <label>Driver 2</label><input type="text" class="form-control" name="driver2" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Compare</button>
+        </form>
+        <div id="comparison" class="mt-2"></div>
+    </div>
+    <script type="module" src="/static/js/firebase-login.js"></script>
+    <script>
+        document.getElementById("compare-drivers-form").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+            const url = `/compare/drivers/?driver1=${encodeURIComponent(data.driver1)}&driver2=${encodeURIComponent(data.driver2)}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail);
+                }
+                const comparison = await response.json();
+                const comparisonDiv = document.getElementById("comparison");
+                comparisonDiv.innerHTML = `
+                    <h3>Driver Comparison</h3>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Attribute</th>
+                                <th>${data.driver1}</th>
+                                <th>${data.driver2}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Object.entries(comparison).map(([key, values]) => `
+                                <tr>
+                                    <td>${key}</td>
+                                    <td>${values[0]}</td>
+                                    <td>${values[1]}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                document.getElementById("comparison").innerHTML = `<p class="text-danger">${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
